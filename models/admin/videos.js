@@ -15,7 +15,7 @@ var videos = {
         var upload = multer({
             storage: multerS3({
                 s3: s3,
-                bucket: 'codeuniverse',
+                bucket: 'vrscience',
                 acl: 'public-read',
                 contentType: multerS3.AUTO_CONTENT_TYPE,
                 key: function (req, file, cb) {
@@ -44,6 +44,7 @@ var videos = {
         var standard = req.body.standard;
         var subject = req.body.subject;
         var description = req.body.description;
+        var videoThumbnail = req.body.videoThumbnail;
 
         if(!url){
             return res.status(400).json({
@@ -59,7 +60,8 @@ var videos = {
             admin:adminData._id,
             standard: standard,
             subject:subject,
-            description:description
+            description:description,
+            videoThumbnail:videoThumbnail
         }
 
         if(adminData.role == "SUPER_ADMIN"){
@@ -200,12 +202,14 @@ var videos = {
         var subject = req.body.subject;
         var description = req.body.description;
         var videoId = req.params.videoId;
+        var videoThumbnail = req.body.videoThumbnail;
 
         var videoData = {
             title: title,
             standard: standard,
             subject:subject,
-            description:description
+            description:description,
+            videoThumbnail:videoThumbnail
         }
 
         dbhandler.editVideo(videoId,videoData).then(function (video) {
@@ -238,7 +242,7 @@ var videos = {
         var upload = multer({
             storage: multerS3({
                 s3: s3,
-                bucket: 'codeuniverse',
+                bucket: 'vrscience',
                 acl: 'public-read',
                 contentType: multerS3.AUTO_CONTENT_TYPE,
                 key: function (req, file, cb) {

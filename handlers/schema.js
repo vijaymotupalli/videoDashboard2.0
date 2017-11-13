@@ -30,7 +30,8 @@ var videoSchema = new mongoose.Schema({
     standard:{ type: String ,required: true},
     subject:{ type: String ,required: true},
     description:{ type: String },
-    admin:{ type: String,required: true }
+    admin:{ type: String,required: true },
+    videoThumbnail:{ type: String},
 },{ versionKey: false , timestamps: true});
 
 var schoolSchema = new mongoose.Schema({
@@ -40,13 +41,14 @@ var standardSchema = new mongoose.Schema({
     name:{type: Number,required: true}
 })
 var subjectSchema = new mongoose.Schema({
-    name:{type: String,required: true}
+    name:{type: String,required: true},
+    image:{type: String}
 })
 
 var codeSchema = new mongoose.Schema({
     code:{type:String,required:true},
     isActive :{type:Boolean,defaultValue:true},
-    paidStandards:{type:String,required:true},
+    paidStandards:{type:String},
     usedBy:{type:String},
     usedOn :{type:Date}
 },{ versionKey: false , timestamps: true})

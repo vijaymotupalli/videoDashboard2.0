@@ -147,7 +147,8 @@ var dbHandler = {
                     subject:video.subject,
                     description:video.description,
                     school:video.school,
-                    admin:video.admin
+                    admin:video.admin,
+                    videoThumbnail:video.videoThumbnail,
 
                 }).then(function (video, err) {
                     if (!err) {
@@ -168,6 +169,7 @@ var dbHandler = {
                 }
                 if(video){
                    demoVideo.title= video.title
+                   demoVideo.videoThumbnail= video.videoThumbnail
                    demoVideo.url = video.url
                    demoVideo.standard= video.standard
                    demoVideo.subject=video.subject
@@ -517,10 +519,13 @@ var dbHandler = {
     generateCode: function (numberOfCodes,paidStandards) {
         return new Promise(function (resolve, reject) {
             var codes = []
+            if(Number(numberOfCodes) > 30 ){
+                numberOfCodes = 30
+            }
             for(i=1;i<=numberOfCodes;i++){
                 var code = {
                     code:shortid.generate(),
-                    paidStandards:paidStandards,
+                    paidStandards:paidStandards ? paidStandards :"",
                     isActive:true
                 }
                 codes.push(code);
@@ -561,13 +566,12 @@ var dbHandler = {
         var userId = user
         return new Promise (function (resolve,reject) {
             return models.codes.findOne({code:code,isActive:true}).then(function (validCode,err) {
-
-                console.log(validCode,err,code)
                 if(err)return reject(err)
                 if(!validCode)return reject("Invalid Code");
+                if(validCode.paidStandards){
+                    if(standard != validCode.paidStandards)return reject("Code Not Valid For Selected Standard");
 
-                if(standard != validCode.paidStandards)return reject("Code Not Valid For Selected Standard");
-
+                }
                 return models.users.findOne({_id:user}).then(function (user, err) {
                     if (err) {
                         return reject(user);
@@ -584,12 +588,10 @@ var dbHandler = {
                         if(err){
                             return reject(err);
                         }
-
                         return models.codes.update({code:code},{isActive:false,usedBy:userId,usedOn:new Date()}).then(function (result,err) {
                             if(err){
                                 return reject(err);
                             }
-                            console.log(result);
                             return dbHandler.getAppUserDetails(userId).then(function (user) {
                                 return resolve(user);
                             },function (err) {

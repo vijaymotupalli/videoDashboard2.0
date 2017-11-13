@@ -80,7 +80,8 @@ var data = {
 
     },
     addSubject:function (req,res) {
-        var subjectData = {name:req.body.name}
+        var subjectData = {name:req.body.name,image:req.body.image}
+        console.log(subjectData)
         dbhandler.addData(subjectData,"subjects").then(function (subject) {
             return res.status(200).json(subject)
 

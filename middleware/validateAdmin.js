@@ -5,9 +5,11 @@ var crypto = require('crypto');
 module.exports = function(req, res, next) {
 
     if (!req.headers.authorization) {
+
+        console.log("----aim in not")
         if(!req.headers.usertoken){
             console.log(req.url)
-            if (req.url == '/api/register' || req.url == '/app/login' || req.url == '/app/users' )
+            if (req.url == '/api/register' || req.url == '/app/login' || req.url == '/app/users' || req.url=='/api/uploadlogo')
             {
                 return next();
             }

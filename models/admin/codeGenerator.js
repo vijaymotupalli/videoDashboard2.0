@@ -11,13 +11,6 @@ var codes = {
     generateCode:function (req,res) {
         var paidStandards = req.body.paidStandards
         var numberOfCodes = req.body.numberOfCodes > 0 ? req.body.numberOfCodes : 1
-        if(!paidStandards ){
-            return res.status(400).json({
-                status: 400,
-                title: 'Failed To Generate Code',
-                msg: "Paid Standards Cant Be Empty"
-            });
-        }
         dbhandler.generateCode(numberOfCodes,paidStandards).then(function (codes) {
             return res.status(200).json(codes)
 
