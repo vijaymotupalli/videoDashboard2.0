@@ -9,7 +9,7 @@ module.exports = function(req, res, next) {
         console.log("----aim in not")
         if(!req.headers.usertoken){
             console.log(req.url)
-            if (req.url == '/api/register' || req.url == '/app/login' || req.url == '/app/users' || req.url=='/api/uploadlogo')
+            if (req.url == '/api/register' || req.url == '/app/login' || req.url == '/app/users' )
             {
                 return next();
             }

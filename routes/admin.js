@@ -28,6 +28,10 @@ module.exports = function (app) {
     app.post('/api/codes',codes.generateCode);
     app.get('/api/codes',codes.getCodes);
 
+    app.post('/resetpassword/requestcode',auth.sendCodeToChangePassword)
+    app.post('/resetpassword/verifycode',auth.verifyCodeToChangePassword)
+    app.post('/resetpassword/changepassword',auth.changePassword)
+
 
 }
 

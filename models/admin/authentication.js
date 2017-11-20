@@ -215,6 +215,85 @@ var authentication = {
         });
 
     },
+    sendCodeToChangePassword: function (req,res) {
+        var email = req.body.email
+        if(!email){
+            return res.status(400).json({
+                title: 'Email Cant Be Empty',
+                msg: 'Please Enter Email To Reset Password'
+            });
+        }
+
+        dbhandler.sendCodeToChangePassword(email).then(function (result) {
+            return res.status(200).json({
+                status: 200,
+                title:"Code Successfully Sent To registered Email",
+                result:result
+            });
+        },function (errMsg) {
+            return res.status(400).json({
+                status: 400,
+                title: 'Failed to Check User Exists or Not',
+                msg: errMsg
+            });
+        })
+
+    } ,
+    verifyCodeToChangePassword: function (req,res) {
+        var email = req.body.email
+        var code = req.body.code
+        if(!email){
+            return res.status(400).json({
+                title: 'Email Cant Be Empty',
+                msg: 'Please Enter Email To Reset Password'
+            });
+        }
+        if(!code){
+            return res.status(400).json({
+                title: 'Code Cant Be Empty',
+                msg: 'Please Enter Code To Reset Password'
+            });
+        }
+
+        dbhandler.verifyCodeToChangePassword(email,code).then(function (result) {
+            return res.status(200).json(result);
+        },function (errMsg) {
+            return res.status(400).json({
+                status: 400,
+                title: 'Failed to Reset User Password',
+                msg: errMsg
+            });
+        })
+
+    },
+    changePassword: function (req,res) {
+        var email = req.body.email
+        var password = req.body.password
+        password = crypto.createHash('md5').update(password).digest("hex")
+        if(!email){
+            return res.status(400).json({
+                title: 'Email Cant Be Empty',
+                msg: 'Please Enter Email To Reset Password'
+            });
+        }
+        if(!password){
+            return res.status(400).json({
+                title: 'password Cant Be Empty',
+                msg: 'Please Enter New password'
+            });
+        }
+
+        dbhandler.changePassword(email,password).then(function (result) {
+            return res.status(200).json(result);
+        },function (errMsg) {
+            return res.status(400).json({
+                status: 400,
+                title: 'Failed to Reset User Password',
+                msg: errMsg
+            });
+        })
+
+    }
 
 
 }

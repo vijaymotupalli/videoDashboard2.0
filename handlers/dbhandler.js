@@ -9,8 +9,9 @@ var crypto = require('crypto');
 var Hashids = require('hashids');
 var hashids = new Hashids();
 var shortid = require('shortid');
+var utils = require('../utils/utils');
 
-shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@');
+shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-#');
 
 
 
@@ -32,7 +33,6 @@ var dbHandler = {
 
     //admin
     login: function (email, password) {
-        console.log(email,password)
         return new Promise(function (resolve, reject) {
             models.admins.findOne({email: email, password: password}, {password: 0},function (err, admin) {
                     if (!err) {
@@ -512,6 +512,61 @@ var dbHandler = {
                 reject(error)
             })
         });
+    },
+    sendCodeToChangePassword: function (email) {
+        return new Promise(function (resolve, reject) {
+
+          return  models.admins.findOne({email: email},function (err, admin) {
+
+              console.log(email,admin)
+              if(err)return reject(err);
+                if(!admin)return reject("Invalid Email ,User Not Found")
+                // generating email verification code
+
+                var email_verification_code = shortid.generate()
+
+                var reset_email = "Dear " + admin.name + ",<br> We recieved a password reset request from you ," +
+                    " <br> please enter <b>"+ email_verification_code +" </b>to reset your password <br>";
+                reset_email += "<br><br> Ignore this email if you did not initiate a password reset request.<br><br>Regards,<br>Team Vr Science";
+                return  utils.send_mail(admin.email, config.email.subjects.password_reset, reset_email).then(function (emailResult) {
+                    admin.codeToResetPassword = email_verification_code
+                    admin.save(function (err,result) {
+                        resolve()
+                    })
+
+                },function (err) {
+                  reject(err);
+              });
+
+            })
+        });
+
+    },
+    verifyCodeToChangePassword:function (email,code) {
+        return new Promise(function (resolve,reject) {
+            return models.admins.findOne({email:email}).then(function (admin,err) {
+                if(err)return reject(err)
+                if(!admin)return reject(admin)
+                if(admin.codeToResetPassword != code){
+                    return reject("Invalid Code");
+                }
+                return resolve("Valid Code")
+            })
+        })
+    },
+    changePassword:function (email,password) {
+        return new Promise(function (resolve,reject) {
+            return models.admins.findOne({email:email}).then(function (admin,err) {
+                if(err)return reject(err)
+                if(!admin)return reject(admin)
+                admin.password = password
+                admin.codeToResetPassword = ""
+                admin.save(function (err,admin) {
+                    if(err)return reject(err)
+                    resolve("Password Changed Successfully")
+                })
+            })
+        })
     },
 
     //code generator
