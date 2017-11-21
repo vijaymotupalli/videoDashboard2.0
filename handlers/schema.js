@@ -33,6 +33,7 @@ var videoSchema = new mongoose.Schema({
     description:{ type: String },
     admin:{ type: String,required: true },
     videoThumbnail:{ type: String},
+    isDemo:{type:Boolean,defaultValue:false}
 },{ versionKey: false , timestamps: true});
 
 var schoolSchema = new mongoose.Schema({

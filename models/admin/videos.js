@@ -45,6 +45,7 @@ var videos = {
         var subject = req.body.subject;
         var description = req.body.description;
         var videoThumbnail = req.body.videoThumbnail;
+        var isDemo = req.body.isDemo ? req.body.isDemo :false
 
         if(!url){
             return res.status(400).json({
@@ -61,12 +62,11 @@ var videos = {
             standard: standard,
             subject:subject,
             description:description,
-            videoThumbnail:videoThumbnail
+            videoThumbnail:videoThumbnail,
+            isDemo:isDemo
         }
 
-        if(adminData.role == "SUPER_ADMIN"){
-
-            console.log("----iam demo-----")
+        if(isDemo){
 
             dbhandler.postDemoVideo(video,adminData._id).then(function (video) {
                 return res.status(200).json(video)
@@ -79,9 +79,6 @@ var videos = {
                 });
             });
         }else{
-
-            console.log("----iam not demo-----")
-
 
             dbhandler.postVideo(video).then(function (video) {
                 return res.status(200).json(video)
@@ -143,8 +140,6 @@ var videos = {
             school:req.body.school ? req.body.school:[],
             admin:req.body.admin ? req.body.admin :[]
         }
-
-        console.log(filters)
 
         if(!admin || !admin._id){
             return res.status(400).json({

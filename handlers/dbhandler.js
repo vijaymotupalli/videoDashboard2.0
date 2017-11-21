@@ -11,7 +11,7 @@ var hashids = new Hashids();
 var shortid = require('shortid');
 var utils = require('../utils/utils');
 
-shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-#');
+shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@');
 
 
 
@@ -149,8 +149,8 @@ var dbHandler = {
                     school:video.school,
                     admin:video.admin,
                     videoThumbnail:video.videoThumbnail,
-
-                }).then(function (video, err) {
+                    isDemo:false
+            }).then(function (video, err) {
                     if (!err) {
                         resolve(video);
                     }
@@ -163,11 +163,11 @@ var dbHandler = {
     },
     postDemoVideo: function (video,admin) {
         return new Promise(function (resolve, reject) {
-            return models.videos.findOne({admin: admin}).then(function (demoVideo, err) {
+            return models.videos.findOne({isDemo:true}).then(function (demoVideo, err) {
                 if (err) {
                     return reject(err);
                 }
-                if(video){
+                if(demoVideo){
                    demoVideo.title= video.title
                    demoVideo.videoThumbnail= video.videoThumbnail
                    demoVideo.url = video.url
@@ -176,13 +176,10 @@ var dbHandler = {
                    demoVideo .description=video.description
                    demoVideo .admin=video.admin
                    demoVideo.save(function (err,updatedDemoVideo) {
-                       console.log("updated",updatedDemoVideo)
                        return resolve(updatedDemoVideo)
                    })
                }else{
                     return models.videos.create(video).then(function (demoVideo,err) {
-                        console.log("creatd",demoVideo)
-
                         if(err)return reject(err)
                         resolve(demoVideo)
                     })
@@ -203,8 +200,10 @@ var dbHandler = {
         var finalQuery = andQuery.length ? {$and:andQuery}:{}
 
         return new Promise(function (resolve, reject) {
-            return models.videos.aggregate([{$lookup:{from:"admins",localField:"admin",foreignField:"_id",as:"fulladmin"}},
-                {$match:{"fulladmin.role":{$ne:"SUPER_ADMIN"}}},{$project:{fulladmin:0}},{$match:finalQuery},
+            return models.videos.aggregate([
+                // {$lookup:{from:"admins",localField:"admin",foreignField:"_id",as:"fulladmin"}},
+                // {$match:{"fulladmin.role":{$ne:"SUPER_ADMIN"}}},{$project:{fulladmin:0}},
+                {$match:finalQuery},{$match:{isDemo:false}},
                 {$lookup:{from:"schools",localField:"school",foreignField:"_id",as:"school"}},
                 {$lookup:{from:"standards",localField:"standard",foreignField:"_id",as:"standard"}},
                 {$lookup:{from:"subjects",localField:"subject",foreignField:"_id",as:"subject"}},
@@ -221,8 +220,10 @@ var dbHandler = {
     },
     getDemoVideos: function (admin) {
         return new Promise(function (resolve, reject) {
-            return models.videos.aggregate([{$lookup:{from:"admins",localField:"admin",foreignField:"_id",as:"admin"}},
-                {$match:{"admin.role":"SUPER_ADMIN"}},{$project:{admin:0}},
+            return models.videos.aggregate([
+                // {$lookup:{from:"admins",localField:"admin",foreignField:"_id",as:"admin"}},
+                // {$match:{"admin.role":"SUPER_ADMIN"}},{$project:{admin:0}},
+                {$match:{isDemo:true}},
                 {$lookup:{from:"standards",localField:"standard",foreignField:"_id",as:"standard"}},
                 {$lookup:{from:"subjects",localField:"subject",foreignField:"_id",as:"subject"}},
                 {$addFields:{standard:{$arrayElemAt:["$standard",0]},
@@ -439,17 +440,19 @@ var dbHandler = {
         });
     },
     getAppUserVideos: function (user,filters) {
-
         return new Promise(function (resolve, reject) {
-
             return models.users.findOne({_id:user}).then(function (user,err) {
                 if(err){return reject(err)}
                 if(!user){return reject("User Not Found")}
 
                 var andQuery = []
 
-                var demoVideosQuery = [{$lookup:{from:"admins",localField:"admin",foreignField:"_id",as:"admin"}},
-                                           {$match:{"admin.role":"SUPER_ADMIN"}},{$project:{admin:0}}]
+                // var demoVideosQuery = [{$lookup:{from:"admins",localField:"admin",foreignField:"_id",as:"admin"}},
+                //                            {$match:{"admin.role":"SUPER_ADMIN"}},{$project:{admin:0}}]
+
+
+                var demoVideosQuery = [{$match:{isDemo:true}}]
+
                 if(filters.subject && filters.subject.length)andQuery.push({subject :{$in:filters.subject}})
 
                 var standardQuery = {$and:[{standard:{$in:user.paidStandards}}]}

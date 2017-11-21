@@ -31,7 +31,6 @@ var util = {
 				}
 			});
 
-			console.log(mailOptions);
 			return transporter.sendMail(mailOptions, function(error, info){
 				if(error){
 					console.log("Error sending email:"+error);
