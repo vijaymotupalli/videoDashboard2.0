@@ -29,6 +29,7 @@ var authentication = {
         var school = req.body.school ? req.body.school:"";
         var schoolLogoUrl = req.body.schoolLogoUrl ? req.body.schoolLogoUrl:"";
         var address = req.body.address;
+        var profilePic = req.body.profilePic
 
         if(!email){
             return res.status(400).json({
@@ -52,7 +53,8 @@ var authentication = {
             phone:phone,
             school:school,
             address:address,
-            schoolLogoUrl:schoolLogoUrl
+            schoolLogoUrl:schoolLogoUrl,
+            profilePic:profilePic
         }
 
         dbhandler.register(admin).then(function (admin) {
@@ -135,12 +137,12 @@ var authentication = {
     },
     editAdmin:function (req,res) {
 
-        console.log("----adminID----",req.params.adminId)
         var phone = req.body.phone;
         var adminId = req.params.adminId
         var name = req.body.name;
         var address = req.body.address;
         var schoolLogoUrl = req.body.schoolLogoUrl
+        var profilePic = req.body.profilePic
 
         if(!adminId){
             return res.status(400).json({
@@ -148,7 +150,7 @@ var authentication = {
                 msg: 'Please Enter Admin Id'
             });
         }
-        var updateData = {name:name,address:address,phone:phone,schoolLogoUrl:schoolLogoUrl}
+        var updateData = {name:name,address:address,phone:phone,schoolLogoUrl:schoolLogoUrl,profilePic :profilePic}
 
         dbhandler.editAdmin(adminId,updateData).then(function (updatedAdmin) {
             res.status(200).json(updatedAdmin)

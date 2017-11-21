@@ -67,10 +67,10 @@ var dbHandler = {
         return new Promise(function (resolve, reject) {
             return models.admins.findOne({email: admin.email}).then(function (existedAdmin, err) {
                 if (existedAdmin) {
-                    reject("Email Already Exists")
+                    return reject("Email Already Exists")
                 }
                 if (err) {
-                    reject(err);
+                   return  reject(err);
                 }
                 return models.admins.create({
                     name: admin.name,
@@ -78,13 +78,14 @@ var dbHandler = {
                     password: admin.password,
                     phone: admin.phone,
                     school: admin.school,
-                    address: admin.address,schoolLogoUrl:admin.schoolLogoUrl
+                    address: admin.address,schoolLogoUrl:admin.schoolLogoUrl,
+                    profilePic:admin.profilePic
                 }).then(function (admin, err) {
                     if (!err) {
-                        resolve(admin);
+                       return resolve(admin);
                     }
                 }).catch(function (error) {
-                    reject(error)
+                   return reject(error)
                 })
             })
 
@@ -520,8 +521,6 @@ var dbHandler = {
         return new Promise(function (resolve, reject) {
 
           return  models.admins.findOne({email: email},function (err, admin) {
-
-              console.log(email,admin)
               if(err)return reject(err);
                 if(!admin)return reject("Invalid Email ,User Not Found")
                 // generating email verification code
