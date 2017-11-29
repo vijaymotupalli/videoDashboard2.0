@@ -13,7 +13,9 @@ var adminSchema = new mongoose.Schema({
     schoolLogoUrl:{ type: String },
     address:{ type: String },
     codeToResetPassword:{type:String},
-    profilePic:{type:String}
+    profilePic:{type:String},
+    addedBy:{type:String},
+    role:{type:String}
 },{ versionKey: false , timestamps: true});
 
 var userSchema = new mongoose.Schema({

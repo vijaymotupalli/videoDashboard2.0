@@ -22,6 +22,13 @@ var authentication = {
 
     },
     register:function (req,res) {
+        var adminId = req.user._id
+        if(!adminId){
+            return res.status(400).json({
+                title: 'Admin  Cant Be Empty',
+                msg: 'Invalid Request'
+            });
+        }
         var email = req.body.email;
         var name = req.body.name;
         var password = req.body.password;
@@ -30,6 +37,20 @@ var authentication = {
         var schoolLogoUrl = req.body.schoolLogoUrl ? req.body.schoolLogoUrl:"";
         var address = req.body.address;
         var profilePic = req.body.profilePic
+        var addedBy = adminId
+         var role = req.body.role
+        switch (role){
+            case "1":
+                role = "SUPER_ADMIN"
+                break;
+            case "2":
+                role = "CONTENT_UPLOADER"
+                break;
+            case "3":
+                role = "INSTITUTE"
+                break;
+        }
+        console.log(role);
 
         if(!email){
             return res.status(400).json({
@@ -54,7 +75,9 @@ var authentication = {
             school:school,
             address:address,
             schoolLogoUrl:schoolLogoUrl,
-            profilePic:profilePic
+            profilePic:profilePic,
+            addedBy:addedBy,
+            role:role
         }
 
         dbhandler.register(admin).then(function (admin) {
@@ -172,7 +195,30 @@ var authentication = {
     },
     getAdmins:function (req,res) {
 
-        dbhandler.getAdmins().then(function (admins) {
+        var role = req.query.role
+        var admin = req.user
+        if(!admin){
+            return res.status(400).json({
+                title: 'Admin  Cant Be Empty',
+                msg: 'Invalid Request'
+            });
+        }
+
+
+        switch (role){
+            case "1":
+                role = "SUPER_ADMIN"
+                break;
+                case "2":
+                role = "CONTENT_UPLOADER"
+                break;
+                case "3":
+                    role = "INSTITUTE"
+                break;
+        }
+
+
+        dbhandler.getAdmins(role,admin).then(function (admins) {
 
             if(!admins){
                 return res.status(404).json({

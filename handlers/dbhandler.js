@@ -79,7 +79,9 @@ var dbHandler = {
                     phone: admin.phone,
                     school: admin.school,
                     address: admin.address,schoolLogoUrl:admin.schoolLogoUrl,
-                    profilePic:admin.profilePic
+                    profilePic:admin.profilePic,
+                    addedBy:admin.addedBy,
+                    role:admin.role
                 }).then(function (admin, err) {
                     if (!err) {
                        return resolve(admin);
@@ -283,9 +285,14 @@ var dbHandler = {
 
         });
     },
-    getAdmins: function () {
+    getAdmins: function (role,admin) {
         return new Promise(function (resolve, reject) {
-            return models.admins.find({}).then(function (admins, err) {
+           var query = role ? {role:role} :{}
+           console.log(admin.role,role)
+           if(admin.role == "SUPER_ADMIN"){
+               query["addedBy"] = admin._id
+           }
+            return models.admins.find(query).then(function (admins, err) {
                 if (!err) {
                         resolve(admins);
                     }
