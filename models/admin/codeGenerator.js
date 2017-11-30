@@ -10,8 +10,9 @@ var codes = {
 
     generateCode:function (req,res) {
         var paidStandards = req.body.paidStandards
+        var institute = req.body.institute ? req.body.institute :""
         var numberOfCodes = req.body.numberOfCodes > 0 ? req.body.numberOfCodes : 1
-        dbhandler.generateCode(numberOfCodes,paidStandards).then(function (codes) {
+        dbhandler.generateCode(numberOfCodes,paidStandards,institute).then(function (codes) {
             return res.status(200).json(codes)
 
         },function (errMsg) {

@@ -11,6 +11,7 @@ module.exports = function (app) {
     app.post('/api/users',auth.register);
     app.get('/api/users/:adminId',auth.getUserDetails)
     app.get('/api/users',auth.getAdmins);
+    app.get('/api/institutes',auth.getInstitutes);
 
     app.put('/api/users/:adminId',auth.editAdmin);
     app.delete('/api/users/:adminId',auth.deleteAdmin);

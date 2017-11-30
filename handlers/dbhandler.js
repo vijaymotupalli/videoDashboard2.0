@@ -195,11 +195,11 @@ var dbHandler = {
     getVideos: function (admin,filters) {
         var andQuery = []
         var query = {admin:admin._id}
-        if(admin.role != config.superAdmin){andQuery.push(query)}
+        if(admin.role == config.contentUploader){andQuery.push(query)}
         if(filters.subject && filters.subject.length)andQuery.push({subject :{$in:filters.subject}})
         if(filters.standard && filters.standard.length)andQuery.push({standard :{$in:filters.standard}})
-        if(admin.role == config.superAdmin && filters.school && filters.school.length)andQuery.push({school :{$in:filters.school}})
-        if(admin.role == config.superAdmin && filters.admin && filters.admin.length)andQuery.push({admin :{$in:filters.admin}})
+      //  if(admin.role == config.superAdmin && filters.school && filters.school.length)andQuery.push({school :{$in:filters.school}})
+      //  if(admin.role == config.superAdmin && filters.admin && filters.admin.length)andQuery.push({admin :{$in:filters.admin}})
         var finalQuery = andQuery.length ? {$and:andQuery}:{}
 
         return new Promise(function (resolve, reject) {
@@ -288,7 +288,6 @@ var dbHandler = {
     getAdmins: function (role,admin) {
         return new Promise(function (resolve, reject) {
            var query = role ? {role:role} :{}
-           console.log(admin.role,role)
            if(admin.role == "SUPER_ADMIN"){
                query["addedBy"] = admin._id
            }
@@ -580,7 +579,7 @@ var dbHandler = {
 
     //code generator
 
-    generateCode: function (numberOfCodes,paidStandards) {
+    generateCode: function (numberOfCodes,paidStandards,institute) {
         return new Promise(function (resolve, reject) {
             var codes = []
             if(Number(numberOfCodes) > 30 ){
@@ -588,14 +587,18 @@ var dbHandler = {
             }
             for(i=1;i<=numberOfCodes;i++){
                 var code = {
-                    code:shortid.generate(),
-                    paidStandards:paidStandards ? paidStandards :"",
-                    isActive:true
+                    code:shortid.generate()
                 }
                 codes.push(code);
             }
 
-            return models.codes.insertMany(codes,function (err,codes) {
+            var codeData = {
+                paidStandards :paidStandards,
+                institute:institute,
+                codes:codes
+            }
+
+            return models.codes.create(codeData,function (err,codes) {
                 if(err)return reject(err);
                     resolve(codes)
 
@@ -606,17 +609,13 @@ var dbHandler = {
     },
     getCodes:function () {
         return new Promise(function (resolve, reject) {
-            return models.codes.aggregate([{$lookup:{from:"standards",localField:"paidStandards",foreignField:"_id",as:"paidStandards"}},
-                {$lookup:{from:"users",localField:"usedBy",foreignField:"_id",as:"usedBy"}},
-                {
-                    $addFields: {
-                        "usedBy": {$arrayElemAt: ["$usedBy.userName", 0]},
-                    }
-                },  {
-                    $addFields: {
-                        "paidStandards": {$arrayElemAt: ["$paidStandards.name", 0]}
-                    }
-                }
+            return models.codes.aggregate([
+                {$unwind:"$codes"},{$lookup:{from:"users",localField:"codes.usedBy",foreignField:"_id",as:"usedBy"}},
+                {$lookup:{from:"standards",localField:"paidStandards",foreignField:"_id",as:"paidStandards"}},
+                {$lookup:{from:"admins",localField:"institute",foreignField:"_id",as:"institute"}},
+                {$addFields:{"codes.usedBy":{$arrayElemAt: ["$usedBy.name", 0]}, "paidStandards": {$arrayElemAt: ["$paidStandards.name", 0]},
+                    "institute": {$arrayElemAt: ["$institute.name", 0]}}},
+                {$group: {_id: '$_id', codes: {$push: "$codes"}, paidStandards: {$first: "$paidStandards"},institute:{$first:"$institute"},createdAt:{$first:"$createdAt"}}}
             ]).then(function (data, err) {
                 if (!err) {
                     resolve(data);
@@ -629,14 +628,13 @@ var dbHandler = {
     applyCode:function (code,standard,user) {
         var userId = user
         return new Promise (function (resolve,reject) {
-            return models.codes.findOne({code:code,isActive:true}).then(function (validCode,err) {
+            return models.codes.findOne({"codes.code":code}).then(function (validCode,err) {
                 if(err)return reject(err)
                 if(!validCode)return reject("Invalid Code");
                 if(validCode.paidStandards){
                     if(standard != validCode.paidStandards)return reject("Code Not Valid For Selected Standard");
-
                 }
-                return models.users.findOne({_id:user}).then(function (user, err) {
+               return models.users.findOne({_id:user}).then(function (user, err) {
                     if (err) {
                         return reject(user);
                     }
@@ -652,16 +650,21 @@ var dbHandler = {
                         if(err){
                             return reject(err);
                         }
-                        return models.codes.update({code:code},{isActive:false,usedBy:userId,usedOn:new Date()}).then(function (result,err) {
-                            if(err){
-                                return reject(err);
+
+                        validCode.codes.map(function (eachCode) {
+                            if(eachCode.code == code){
+                                eachCode.usedBy = userId
+                                eachCode.usedOn = new Date()
                             }
+                        })
+
+                        validCode.save(function (err,result) {
+                            if(err)return reject(err);
                             return dbHandler.getAppUserDetails(userId).then(function (user) {
                                 return resolve(user);
                             },function (err) {
                                 return reject(err)
                             })
-
                         })
 
                     })

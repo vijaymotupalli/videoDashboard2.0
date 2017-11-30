@@ -243,6 +243,39 @@ var authentication = {
         })
 
     },
+    getInstitutes:function (req,res) {
+        var admin = req.user
+        if(!admin){
+            return res.status(400).json({
+                title: 'Admin  Cant Be Empty',
+                msg: 'Invalid Request'
+            });
+        }
+        var role = "INSTITUTE"
+        dbhandler.getAdmins(role,admin).then(function (admins) {
+            if(!admins){
+                return res.status(404).json({
+                    title: 'Data Not Found',
+                    msg: "Admins You Are looking Not Found"
+                })
+            }
+
+            res.status(200).json(admins)
+        },function (errMsg) {
+            res.status(400);
+            return res.json({
+                title: 'Failed To Get Admins',
+                msg: errMsg
+            });
+        }).catch(function (err) {
+            res.status(400);
+            return res.json({
+                title: 'Failed To Get Admins',
+                msg: err
+            });
+        })
+
+    },
     deleteAdmin:function (req,res) {
         var adminId = req.params.adminId
         if(!adminId){

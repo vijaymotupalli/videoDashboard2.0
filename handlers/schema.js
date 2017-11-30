@@ -51,11 +51,13 @@ var subjectSchema = new mongoose.Schema({
 })
 
 var codeSchema = new mongoose.Schema({
-    code:{type:String,required:true},
-    isActive :{type:Boolean,defaultValue:true},
     paidStandards:{type:String},
-    usedBy:{type:String},
-    usedOn :{type:Date}
+    institute:{type:String},
+    codes:[new mongoose.Schema({
+        usedBy:{type:String},
+        usedOn :{type:Date},
+        code:{type:String,required:true}
+    },{_id:false})]
 },{ versionKey: false , timestamps: true})
 
 
